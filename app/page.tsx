@@ -55,9 +55,22 @@ export default function FinanceDashboard() {
         router.push('/login');
         return;
       }
+
       
       const data = await res.json();
       
+      if(data.user.role == 'OWNER'){
+        router.push('/owner');
+        return;
+      }
+
+
+      if(data.user.role !== 'ADMIN'){
+        router.push('/login');
+        return;
+      }
+
+
       if (!data.user) {
         router.push('/login');
         return;

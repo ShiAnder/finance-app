@@ -15,6 +15,7 @@ model User {
   role      String      @default("USER") // "USER" or "ADMIN"
   sessions  Session[]
   transactions Transaction[]
+  activityLogs ActivityLog[]
   createdAt DateTime    @default(now())
   updatedAt DateTime    @updatedAt
 }
@@ -31,6 +32,7 @@ model Session {
 enum Role {
   ADMIN
   USER
+  OWNER
 }
 
 model Transaction {
@@ -42,4 +44,17 @@ model Transaction {
   date        DateTime @default(now())
   userId      Int
   user        User     @relation(fields: [userId], references: [id])
+}
+
+model ActivityLog {
+  id         Int      @id @default(autoincrement())
+  userId     Int
+  userName   String
+  action     String
+  entityType String
+  entityId   Int
+  details    String
+  createdAt  DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade, onUpdate: Cascade)
 }

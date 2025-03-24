@@ -14,7 +14,7 @@ export async function GET(request: Request) {
     }
     
     // If admin, get all transactions with user details
-    if (userRole === 'ADMIN') {
+    if (userRole === 'OWNER') {
       const transactions = await prisma.transaction.findMany({
         include: {
           user: {
@@ -52,9 +52,11 @@ export async function GET(request: Request) {
   }
 }
 
+// POST method for creating transactions
 export async function POST(request: Request) {
   try {
     const userId = request.headers.get('x-user-id');
+    const userRole = request.headers.get('x-user-role');
     
     if (!userId) {
       return NextResponse.json(
@@ -63,20 +65,39 @@ export async function POST(request: Request) {
       );
     }
     
-    const body = await request.json();
+    // Parse the request body
+    const data = await request.json();
     
+    // Validate the request data
+    if (!data.amount || !data.description || !data.type || !data.category) {
+      return NextResponse.json(
+        { error: 'Amount, description, type, and category are required' },
+        { status: 400 }
+      );
+    }
+    
+    // Validate transaction type
+    const validTypes = ['INCOME', 'EXPENSE', 'OTHER'];
+    if (!validTypes.includes(data.type)) {
+      return NextResponse.json(
+        { error: 'Type must be one of: INCOME, EXPENSE, OTHER' },
+        { status: 400 }
+      );
+    }
+    
+    // Create the transaction
     const transaction = await prisma.transaction.create({
       data: {
-        amount: body.amount,
-        type: body.type,
-        category: body.category,
-        description: body.description,
+        amount: parseFloat(data.amount),
+        type: data.type,
+        category: data.category,
+        description: data.description,
+        date: data.date ? new Date(data.date) : new Date(),
         userId: parseInt(userId),
-        date: new Date()
       }
     });
     
-    return NextResponse.json(transaction);
+    return NextResponse.json(transaction, { status: 201 });
   } catch (error) {
     console.error('Create transaction error:', error);
     return NextResponse.json(
