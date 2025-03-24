@@ -522,7 +522,7 @@ export default function OwnerDashboard() {
               </div>
               {activityLogs.slice(0, 3).map(log => (
                 <div key={log.id} className="mb-2 pb-2 border-b border-gray-100 last:border-0">
-                  <p className="text-sm font-medium">{log.userName} {log.action} a {log.entityType}</p>
+                  <p className="text-sm font-medium text-red-500">{log.userName} {log.action} a {log.entityType}</p>
                   <p className="text-xs text-gray-500">{new Date(log.createdAt).toLocaleString()}</p>
                 </div>
               ))}

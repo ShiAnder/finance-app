@@ -44,6 +44,7 @@ export async function middleware(request: NextRequest) {
     // Add user info to headers for route handlers
     const requestHeaders = new Headers(request.headers);
     requestHeaders.set('x-user-id', String(payload.id));
+    requestHeaders.set('x-user-name', String(payload.name)); // Add name or fallback to email
     requestHeaders.set('x-user-role', userRole);
     
     // Check role-based permissions for the route

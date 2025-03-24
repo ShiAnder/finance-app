@@ -1,5 +1,7 @@
 import { NextResponse } from 'next/server';
-import prisma from '@/lib/prisma'; // Adjust based on your project structure
+import prisma from '@/lib/prisma'; // Adjust based on your project structure|
+import { logActivity } from '@/lib/activityLogger';
+
 
 export async function GET(request: Request) {
   try {
@@ -56,18 +58,19 @@ export async function GET(request: Request) {
 export async function POST(request: Request) {
   try {
     const userId = request.headers.get('x-user-id');
+    const userName = request.headers.get('x-user-name') || 'Unknown User';
     const userRole = request.headers.get('x-user-role');
-    
+
     if (!userId) {
       return NextResponse.json(
         { error: 'Authentication required' },
         { status: 401 }
       );
     }
-    
+
     // Parse the request body
     const data = await request.json();
-    
+
     // Validate the request data
     if (!data.amount || !data.description || !data.type || !data.category) {
       return NextResponse.json(
@@ -75,7 +78,7 @@ export async function POST(request: Request) {
         { status: 400 }
       );
     }
-    
+
     // Validate transaction type
     const validTypes = ['INCOME', 'EXPENSE', 'OTHER'];
     if (!validTypes.includes(data.type)) {
@@ -84,7 +87,7 @@ export async function POST(request: Request) {
         { status: 400 }
       );
     }
-    
+
     // Create the transaction
     const transaction = await prisma.transaction.create({
       data: {
@@ -96,6 +99,7 @@ export async function POST(request: Request) {
         userId: parseInt(userId),
       }
     });
+
     
     return NextResponse.json(transaction, { status: 201 });
   } catch (error) {

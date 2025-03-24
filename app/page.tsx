@@ -252,7 +252,7 @@ export default function FinanceDashboard() {
               <div className="p-2 bg-red-100 rounded-full">
                 <Trash2 className="w-6 h-6 text-red-600" />
               </div>
-              <h3 className="text-xl font-semibold">Confirm Delete</h3>
+              <h3 className="text-xl font-semibold text-red-600">Confirm Delete</h3>
             </div>
             <p className="text-gray-600 mb-6">
               Are you sure you want to delete this transaction? This action cannot be undone.
@@ -413,9 +413,6 @@ export default function FinanceDashboard() {
               <thead className="bg-gray-50">
                 <tr>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date</th>
-                  {isAdmin && (
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">User</th>
-                  )}
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Type</th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Category</th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Description</th>
@@ -439,11 +436,7 @@ export default function FinanceDashboard() {
                           hour12: true,
                         })}
                       </td>
-                      {isAdmin && (
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                          {transaction.user?.name || 'Unknown'}
-                        </td>
-                      )}
+                     
                       <td className="px-6 py-4 whitespace-nowrap">
                         <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
                           transaction.type === 'INCOME' 

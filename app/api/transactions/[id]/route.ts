@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import prisma from '@/lib/prisma'; // Adjust based on your project structure
+import { logActivity } from '@/lib/activityLogger';
 
 export async function PUT(
   request: Request,
@@ -7,6 +8,7 @@ export async function PUT(
 ) {
   try {
     const userId = request.headers.get('x-user-id');
+    const userName = request.headers.get('x-user-name') || 'Unknown User';
     const userRole = request.headers.get('x-user-role');
 
     if (!userId) {
@@ -16,7 +18,7 @@ export async function PUT(
       );
     }
 
-    const { id } = await context.params;
+    const { id } = context.params;
     const body = await request.json();
 
     // Check if the transaction exists and belongs to the user
@@ -49,6 +51,29 @@ export async function PUT(
       }
     });
 
+    // Log the edit activity
+    await logActivity(
+      parseInt(userId),
+      userName,
+      'UPDATE',
+      'Transaction',
+      transaction.id,
+      JSON.stringify({
+        before: {
+          amount: existingTransaction.amount,
+          type: existingTransaction.type,
+          category: existingTransaction.category,
+          description: existingTransaction.description
+        },
+        after: {
+          amount: transaction.amount,
+          type: transaction.type,
+          category: transaction.category,
+          description: transaction.description
+        }
+      })
+    );
+
     return NextResponse.json(transaction);
   } catch (error) {
     console.error('Update transaction error:', error);
@@ -65,6 +90,7 @@ export async function DELETE(
 ) {
   try {
     const userId = request.headers.get('x-user-id');
+    const userName = request.headers.get('x-user-name') || 'Unknown User';
     const userRole = request.headers.get('x-user-role');
 
     if (!userId) {
@@ -74,7 +100,7 @@ export async function DELETE(
       );
     }
 
-    const { id } = await context.params;
+    const { id } = context.params;
 
     // Check if the transaction exists and belongs to the user
     const existingTransaction = await prisma.transaction.findUnique({
@@ -95,6 +121,24 @@ export async function DELETE(
         { status: 403 }
       );
     }
+
+    // Log the delete activity BEFORE deletion to capture details
+    await logActivity(
+      parseInt(userId),
+      userName,
+      'DELETE',
+      'Transaction',
+      parseInt(id),
+      JSON.stringify({
+        deletedTransaction: {
+          amount: existingTransaction.amount,
+          type: existingTransaction.type,
+          category: existingTransaction.category,
+          description: existingTransaction.description,
+          date: existingTransaction.date
+        }
+      })
+    );
 
     await prisma.transaction.delete({
       where: { id: parseInt(id) }
