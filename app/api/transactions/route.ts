@@ -1,6 +1,5 @@
 import { NextResponse } from 'next/server';
 import prisma from '@/lib/prisma'; // Adjust based on your project structure|
-import { logActivity } from '@/lib/activityLogger';
 
 
 export async function GET(request: Request) {
@@ -58,8 +57,6 @@ export async function GET(request: Request) {
 export async function POST(request: Request) {
   try {
     const userId = request.headers.get('x-user-id');
-    const userName = request.headers.get('x-user-name') || 'Unknown User';
-    const userRole = request.headers.get('x-user-role');
 
     if (!userId) {
       return NextResponse.json(

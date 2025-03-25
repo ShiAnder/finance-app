@@ -1,15 +1,19 @@
 import { NextResponse } from 'next/server';
-import prisma from '@/lib/prisma'; // Adjust based on your project structure
+import prisma from '@/lib/prisma';
 import { logActivity } from '@/lib/activityLogger';
 
 export async function PUT(
-  request: Request,
-  context: { params: { id: string } }
+  request: Request
 ) {
   try {
     const userId = request.headers.get('x-user-id');
     const userName = request.headers.get('x-user-name') || 'Unknown User';
     const userRole = request.headers.get('x-user-role');
+
+    // Extract transaction ID from the URL
+    const url = new URL(request.url);
+    const pathSegments = url.pathname.split('/');
+    const id = pathSegments[pathSegments.length - 1];
 
     if (!userId) {
       return NextResponse.json(
@@ -18,12 +22,18 @@ export async function PUT(
       );
     }
 
-    const { id } = context.params;
-    const body = await request.json();
+    if (!id) {
+      return NextResponse.json({ error: 'Invalid transaction ID' }, { status: 400 });
+    }
 
-    // Check if the transaction exists and belongs to the user
+    const transactionId = parseInt(id, 10);
+    if (isNaN(transactionId)) {
+      return NextResponse.json({ error: 'Invalid transaction ID' }, { status: 400 });
+    }
+
+    // Check if the transaction exists
     const existingTransaction = await prisma.transaction.findUnique({
-      where: { id: parseInt(id) }
+      where: { id: transactionId }
     });
 
     if (!existingTransaction) {
@@ -34,15 +44,17 @@ export async function PUT(
     }
 
     // Regular users can only update their own transactions
-    if (userRole !== 'ADMIN' && existingTransaction.userId !== parseInt(userId)) {
+    if (userRole !== 'ADMIN' && existingTransaction.userId !== parseInt(userId, 10)) {
       return NextResponse.json(
         { error: 'You are not authorized to update this transaction' },
         { status: 403 }
       );
     }
 
+    const body = await request.json();
+
     const transaction = await prisma.transaction.update({
-      where: { id: parseInt(id) },
+      where: { id: transactionId },
       data: {
         amount: body.amount,
         type: body.type,
@@ -51,13 +63,13 @@ export async function PUT(
       }
     });
 
-    // Log the edit activity
+    // Log update action
     await logActivity(
-      parseInt(userId),
+      parseInt(userId, 10),
       userName,
       'UPDATE',
       'Transaction',
-      transaction.id,
+      transactionId,
       JSON.stringify({
         before: {
           amount: existingTransaction.amount,
@@ -85,13 +97,17 @@ export async function PUT(
 }
 
 export async function DELETE(
-  request: Request,
-  context: { params: { id: string } }
+  request: Request
 ) {
   try {
     const userId = request.headers.get('x-user-id');
     const userName = request.headers.get('x-user-name') || 'Unknown User';
     const userRole = request.headers.get('x-user-role');
+
+    // Extract transaction ID from the URL
+    const url = new URL(request.url);
+    const pathSegments = url.pathname.split('/');
+    const id = pathSegments[pathSegments.length - 1];
 
     if (!userId) {
       return NextResponse.json(
@@ -100,11 +116,18 @@ export async function DELETE(
       );
     }
 
-    const { id } = context.params;
+    if (!id) {
+      return NextResponse.json({ error: 'Invalid transaction ID' }, { status: 400 });
+    }
 
-    // Check if the transaction exists and belongs to the user
+    const transactionId = parseInt(id, 10);
+    if (isNaN(transactionId)) {
+      return NextResponse.json({ error: 'Invalid transaction ID' }, { status: 400 });
+    }
+
+    // Check if the transaction exists
     const existingTransaction = await prisma.transaction.findUnique({
-      where: { id: parseInt(id) }
+      where: { id: transactionId }
     });
 
     if (!existingTransaction) {
@@ -114,21 +137,21 @@ export async function DELETE(
       );
     }
 
-    // Regular users can only delete their own transactions
-    if (userRole !== 'ADMIN' && existingTransaction.userId !== parseInt(userId)) {
+    // Authorization check
+    if (userRole !== 'ADMIN' && existingTransaction.userId !== parseInt(userId, 10)) {
       return NextResponse.json(
         { error: 'You are not authorized to delete this transaction' },
         { status: 403 }
       );
     }
 
-    // Log the delete activity BEFORE deletion to capture details
+    // Log delete action
     await logActivity(
-      parseInt(userId),
+      parseInt(userId, 10),
       userName,
       'DELETE',
       'Transaction',
-      parseInt(id),
+      transactionId,
       JSON.stringify({
         deletedTransaction: {
           amount: existingTransaction.amount,
@@ -140,8 +163,9 @@ export async function DELETE(
       })
     );
 
+    // Delete transaction
     await prisma.transaction.delete({
-      where: { id: parseInt(id) }
+      where: { id: transactionId }
     });
 
     return NextResponse.json({ success: true });

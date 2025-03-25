@@ -26,7 +26,7 @@ export async function GET(req: NextRequest) {
     }
     
     // Don't return the password
-    const { password: _, ...userWithoutPassword } = dbUser;
+    const {...userWithoutPassword } = dbUser;
     
     return NextResponse.json(userWithoutPassword);
   } catch (error) {

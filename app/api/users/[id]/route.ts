@@ -36,7 +36,7 @@ export async function GET(request: Request) {
   }
 }
 
-export async function DELETE(request: Request, { params }: { params: { id: string } }) {
+export async function DELETE(request: Request) {
   try {
     const userRole = request.headers.get('x-user-role');
     
@@ -48,7 +48,10 @@ export async function DELETE(request: Request, { params }: { params: { id: strin
       );
     }
     
-    const userId = params.id;
+    // Extract user ID from the URL
+    const url = new URL(request.url);
+    const pathSegments = url.pathname.split('/');
+    const userId = pathSegments[pathSegments.length - 1];
     
     if (!userId) {
       return NextResponse.json(

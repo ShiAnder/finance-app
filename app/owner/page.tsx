@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 import { Transaction } from '@prisma/client';
 import { 
   PieChart, Loader, LogOut, User, Users, Activity,
-  BarChart2, Trash2, Search, Filter, Download, AlertTriangle
+  BarChart2, Trash2, Search, Download, AlertTriangle
 } from 'react-feather';
 
 interface UserData {
@@ -53,49 +53,6 @@ export default function OwnerDashboard() {
   
   const router = useRouter();
 
-  useEffect(() => {
-    checkAuth();
-  }, []);
-
-  useEffect(() => {
-    if (currentUser && currentUser.role === 'OWNER') {
-      fetchAllData();
-    }
-  }, [currentUser]);
-
-  const checkAuth = async () => {
-    try {
-      setIsLoading(true);
-      const res = await fetch('/api/auth/session');
-      
-      if (!res.ok) {
-        router.push('/login');
-        return;
-      }
-      
-      const data = await res.json();
-      
-      if (!data.user) {
-        router.push('/login');
-        return;
-      }
-      
-      setCurrentUser(data.user);
-      
-      // Redirect if not owner
-      if (data.user.role !== 'OWNER') {
-        router.push('/');
-        return;
-      }
-    } catch (error) {
-      console.error('Auth error:', error);
-      setErrorMessage('Authentication error');
-      router.push('/login');
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
   const fetchAllData = async () => {
     setIsLoading(true);
     try {
@@ -112,6 +69,35 @@ export default function OwnerDashboard() {
     }
   };
 
+  
+  useEffect(() => {
+    if (currentUser && currentUser.role === 'OWNER') {
+      fetchAllData();
+    }
+  }, [currentUser]);
+
+  useEffect(() => {
+    const fetchUser = async () => {
+            try {
+                const res = await fetch('/api/auth/session');
+                if (!res.ok) {
+                    router.push('/login');
+                    return;
+                }
+
+                const data = await res.json();
+                setCurrentUser(data.user);
+            } catch (error) {
+                console.error('Auth error:', error);
+                setErrorMessage('Authentication error');
+                router.push('/login');
+            }
+        };
+
+        fetchUser();
+    }, []);
+
+    
   const fetchUsers = async () => {
     try {
       const res = await fetch('/api/users');
@@ -126,19 +112,7 @@ export default function OwnerDashboard() {
     }
   };
 
-  const fetchTransactions = async () => {
-    try {
-      const res = await fetch('/api/transactions');
-      if (!res.ok) {
-        throw new Error(`HTTP error! Status: ${res.status}`);
-      }
-      const data = await res.json();
-      setTransactions(Array.isArray(data) ? data : []);
-    } catch (error) {
-      console.error('Fetch transactions error:', error);
-      setErrorMessage('Failed to fetch transactions');
-    }
-  };
+
 
   const fetchActivityLogs = async () => {
     try {
@@ -321,6 +295,8 @@ export default function OwnerDashboard() {
     }
   };
 
+  
+
   const downloadReport = () => {
     try {
       // Create CSV content
@@ -353,6 +329,35 @@ export default function OwnerDashboard() {
     transactions.forEach(t => categories.add(t.category));
     return Array.from(categories).sort();
   };
+
+
+  const fetchTransactions = async () => {
+    try {
+      setIsLoading(true);
+      const res = await fetch('/api/transactions');
+
+      if (!res.ok) {
+        if (res.status === 401) {
+          // Unauthorized, redirect to login
+          router.push('/login');
+          return;
+        }
+        throw new Error(`HTTP error! Status: ${res.status}`);
+      }
+
+      const data = await res.json();
+
+      // Make sure data is an array before setting state
+      setTransactions(Array.isArray(data) ? data : []);
+    } catch (error) {
+      console.error('Fetch transactions error:', error);
+      setErrorMessage('Failed to fetch transactions');
+      setTransactions([]); // Reset to empty array on error
+    } finally {
+      setIsLoading(false);
+    }
+  };
+  
 
   return (
     <div className="min-h-screen bg-gray-50 relative">
@@ -417,7 +422,7 @@ export default function OwnerDashboard() {
         <div className="flex items-center justify-between mb-8">
           <div className="flex items-center space-x-3">
             <PieChart className="w-8 h-8 text-emerald-600" />
-            <h1 className="text-3xl font-bold text-gray-900">Owner Dashboard</h1>
+            <h1 className="text-3xl font-bold text-gray-900">Steam Yard Dashboard</h1>
           </div>
           
           <div className="flex items-center space-x-4">
@@ -542,7 +547,7 @@ export default function OwnerDashboard() {
                 <input
                   type="text"
                   placeholder="Search users..."
-                  className="pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
+                  className="pl-10 pr-4 py-2 border border-gray-600 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 text-gray-900"
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
                 />
@@ -623,7 +628,7 @@ export default function OwnerDashboard() {
                     <input
                       type="text"
                       placeholder="Search..."
-                      className="pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
+                      className="pl-10 pr-4 py-2 border border-gray-600 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 text-gray-900"
                       value={searchTerm}
                       onChange={(e) => setSearchTerm(e.target.value)}
                     />
@@ -631,7 +636,7 @@ export default function OwnerDashboard() {
                   
                   {/* User Filter */}
                   <select
-                    className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
+                    className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 text-gray-900"
                     value={selectedUser || ''}
                     onChange={(e) => setSelectedUser(e.target.value ? parseInt(e.target.value) : null)}
                   >
@@ -646,7 +651,7 @@ export default function OwnerDashboard() {
                   
                   {/* Category Filter */}
                   <select
-                    className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
+                    className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 text-gray-900"
                     value={categoryFilter}
                     onChange={(e) => setCategoryFilter(e.target.value)}
                   >
@@ -658,7 +663,7 @@ export default function OwnerDashboard() {
                   
                   {/* Date Filter */}
                   <select
-                    className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
+                    className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 text-gray-900"
                     value={dateFilter}
                     onChange={(e) => setDateFilter(e.target.value)}
                   >
@@ -738,7 +743,7 @@ export default function OwnerDashboard() {
                 <input
                   type="text"
                   placeholder="Search activity..."
-                  className="pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
+                  className="pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 text-gray-900"
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
                 />
@@ -746,14 +751,15 @@ export default function OwnerDashboard() {
             </div>
             
             <div className="overflow-x-auto">
+            <div className="bg-white shadow-md rounded-lg overflow-hidden">
               <table className="w-full">
-                <thead className="bg-gray-50">
+                <thead className="bg-emerald-50 border-b border-emerald-200">
                   <tr>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date & Time</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">User</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Action</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Entity Type</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Details</th>
+                    <th className="px-6 py-3 text-left text-xs font-semibold text-emerald-600 uppercase tracking-wider">Date & Time</th>
+                    <th className="px-6 py-3 text-left text-xs font-semibold text-emerald-600 uppercase tracking-wider">User</th>
+                    <th className="px-6 py-3 text-left text-xs font-semibold text-emerald-600 uppercase tracking-wider">Action</th>
+                    <th className="px-6 py-3 text-left text-xs font-semibold text-emerald-600 uppercase tracking-wider">Entity Type</th>
+                    <th className="px-6 py-3 text-left text-xs font-semibold text-emerald-600 uppercase tracking-wider">Details</th>
                   </tr>
                 </thead>
                 
@@ -767,19 +773,87 @@ export default function OwnerDashboard() {
                         log.details.toLowerCase().includes(searchTerm.toLowerCase())
                         : true
                     )
-                    .map((log) => (
-                      <tr key={log.id} className="hover:bg-gray-50 transition-colors">
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                          {new Date(log.createdAt).toLocaleString()}
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{log.userName}</td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{log.action}</td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{log.entityType}</td>
-                        <td className="px-6 py-4 text-sm text-gray-900 max-w-xs truncate">{log.details}</td>
-                      </tr>
-                    ))}
+                    .map((log) => {
+                      // Parse the details JSON
+                      let parsedDetails;
+                      try {
+                        parsedDetails = JSON.parse(log.details);
+                      } catch {
+                        parsedDetails = log.details;
+                      }
+
+                      return (
+                        <tr key={log.id} className="hover:bg-emerald-50 transition-colors group">
+                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">
+                            <div className="flex items-center">
+                              <svg className="h-5 w-5 text-emerald-500 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                              </svg>
+                              {new Date(log.createdAt).toLocaleString()}
+                            </div>
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">
+                            <div className="flex items-center">
+                              <svg className="h-5 w-5 text-emerald-500 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                              </svg>
+                              {log.userName}
+                            </div>
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap text-sm">
+                            <span className={`px-2 py-1 rounded-full text-xs font-medium 
+                              ${log.action === 'UPDATE' ? 'bg-yellow-100 text-yellow-800' : 
+                                log.action === 'CREATE' ? 'bg-emerald-100 text-emerald-800' : 
+                                log.action === 'DELETE' ? 'bg-red-100 text-red-800' : 'bg-gray-100 text-gray-800'}`}>
+                              {log.action}
+                            </span>
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">
+                            <div className="flex items-center">
+                              <svg className="h-5 w-5 text-emerald-500 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
+                              </svg>
+                              {log.entityType}
+                            </div>
+                          </td>
+                          <td className="px-6 py-4 text-sm text-gray-700">
+                            {typeof parsedDetails === 'object' ? (
+                              <div className="space-y-1">
+                                {log.action === 'UPDATE' && parsedDetails.before && parsedDetails.after ? (
+                                  <div className="bg-gray-50 p-2 rounded">
+                                    <div className="flex justify-between">
+                                      <span className="font-medium text-gray-600">Before:</span>
+                                      <span className="text-red-600">
+                                        {Object.entries(parsedDetails.before).map(([key, value]) => 
+                                          `${key}: ${value}`
+                                        ).join(', ')}
+                                      </span>
+                                    </div>
+                                    <div className="flex justify-between mt-1">
+                                      <span className="font-medium text-gray-600">After:</span>
+                                      <span className="text-emerald-600">
+                                        {Object.entries(parsedDetails.after).map(([key, value]) => 
+                                          `${key}: ${value}`
+                                        ).join(', ')}
+                                      </span>
+                                    </div>
+                                  </div>
+                                ) : (
+                                  <pre className="text-xs bg-gray-50 p-2 rounded overflow-x-auto">
+                                    {JSON.stringify(parsedDetails, null, 2)}
+                                  </pre>
+                                )}
+                              </div>
+                            ) : (
+                              <span>{log.details}</span>
+                            )}
+                          </td>
+                        </tr>
+                      );
+                    })}
                 </tbody>
               </table>
+            </div>
               {activityLogs.filter(log => 
                 searchTerm ? 
                   log.userName.toLowerCase().includes(searchTerm.toLowerCase()) ||

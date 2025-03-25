@@ -34,7 +34,7 @@ export async function POST(request: Request) {
     cookieStore.set('auth-token', token, { httpOnly: true, secure: true, sameSite: 'strict' });
     
     // Return user data (without password)
-    const { password: _, ...userData } = user;
+    const {...userData } = user;
     return NextResponse.json({ user: userData });
   } catch (error) {
     console.error('Login API error:', error);

@@ -35,9 +35,29 @@ export default function FinanceDashboard() {
   const [isAdmin, setIsAdmin] = useState(false);
   const router = useRouter();
 
+
   useEffect(() => {
-    checkAuth();
-  }, []);
+    const fetchUser = async () => {
+            try {
+                const res = await fetch('/api/auth/session');
+                if (!res.ok) {
+                    router.push('/login');
+                    return;
+                }
+
+                const data = await res.json();
+                setCurrentUser(data.user);
+                setIsAdmin(data.user.role === 'ADMIN');
+            } catch (error) {
+                console.error('Auth error:', error);
+                setErrorMessage('Authentication error');
+                router.push('/login');
+            }
+        };
+
+        fetchUser();
+    }, []);
+
 
   useEffect(() => {
     if (currentUser) {
@@ -45,47 +65,6 @@ export default function FinanceDashboard() {
     }
   }, [currentUser]);
 
-  const checkAuth = async () => {
-    try {
-      setIsLoading(true);
-      const res = await fetch('/api/auth/session');
-      
-      if (!res.ok) {
-        // If response is not OK, redirect to login
-        router.push('/login');
-        return;
-      }
-
-      
-      const data = await res.json();
-      
-      if(data.user.role == 'OWNER'){
-        router.push('/owner');
-        return;
-      }
-
-
-      if(data.user.role !== 'ADMIN'){
-        router.push('/login');
-        return;
-      }
-
-
-      if (!data.user) {
-        router.push('/login');
-        return;
-      }
-      
-      setCurrentUser(data.user);
-      setIsAdmin(data.user.role === 'ADMIN');
-    } catch (error) {
-      console.error('Auth error:', error);
-      setErrorMessage('Authentication error');
-      router.push('/login');
-    } finally {
-      setIsLoading(false);
-    }
-  };
 
   const handleLogout = async () => {
     try {
@@ -231,6 +210,7 @@ export default function FinanceDashboard() {
       return acc - transaction.amount;
     }, 0);
   };
+
 
   // Rest of the component (UI) remains the same...
   return (

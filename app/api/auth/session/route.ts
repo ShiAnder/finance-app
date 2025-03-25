@@ -19,7 +19,6 @@ export async function GET() {
     try {
       // Verify the JWT token
       const { payload } = await jwtVerify(token, JWT_SECRET);
-      console.log('Decoded token:', payload); // Log the decoded token
 
       // Return user data from the token
       return NextResponse.json({

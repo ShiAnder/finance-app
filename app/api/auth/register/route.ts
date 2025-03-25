@@ -34,7 +34,7 @@ export async function POST(req: NextRequest) {
     });
     
     // Don't return the password
-    const { password: _, ...userWithoutPassword } = user;
+    const {...userWithoutPassword } = user;
     
     return NextResponse.json(userWithoutPassword);
   } catch (error) {
