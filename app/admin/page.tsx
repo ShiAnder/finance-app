@@ -19,6 +19,25 @@ interface TransactionWithUser extends Transaction {
   };
 }
 
+
+const expenseCategories = [
+  "Groceries",
+  "Water Bill",
+  "Electricity",
+  "Building Rental",
+  "Furnitures",
+  "Glass and Crock",
+  "Staff Salary",
+  "Staff Service Charge",
+];
+
+const incomeCategories = [
+  "Restaurant",
+  "Surf Lessons",
+  "Surf Board Rental",
+];
+
+
 export default function FinanceDashboard() {
   const [transactions, setTransactions] = useState<TransactionWithUser[]>([]);
   const [formData, setFormData] = useState({
@@ -35,6 +54,18 @@ export default function FinanceDashboard() {
   const [isAdmin, setIsAdmin] = useState(false);
   const router = useRouter();
 
+  const getCategories = () => {
+    switch (formData.type) {
+      case "EXPENSE":
+        return expenseCategories;
+      case "INCOME":
+        return incomeCategories;
+      case "OTHER":
+        return ["Other"];
+      default:
+        return [];
+    }
+  };
 
   useEffect(() => {
     const fetchUser = async () => {
@@ -343,18 +374,25 @@ export default function FinanceDashboard() {
                   <option value="INCOME">Income</option>
                   <option value="OTHER">Other</option>
                 </select>
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Category</label>
-                <input
-                  type="text"
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 text-gray-900"
-                  placeholder="Category"
-                  value={formData.category}
-                  onChange={(e) => setFormData({ ...formData, category: e.target.value })}
-                  required
-                />
+                
+                <div className="mt-4">
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Category</label>
+                  <select
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 text-gray-900"
+                    value={formData.category}
+                    onChange={(e) => setFormData({ ...formData, category: e.target.value })}
+                    required
+                  >
+                    <option value="" disabled>
+                      Select a category
+                    </option>
+                    {getCategories().map((category, index) => (
+                      <option key={index} value={category}>
+                        {category}
+                      </option>
+                    ))}
+                  </select>
+                </div>
               </div>
 
               <div>
