@@ -525,12 +525,19 @@ export default function OwnerDashboard() {
                 <h3 className="text-lg font-semibold text-gray-900">Recent Activity</h3>
                 <BarChart2 className="w-6 h-6 text-emerald-600" />
               </div>
-              {activityLogs.slice(0, 3).map(log => (
-                <div key={log.id} className="mb-2 pb-2 border-b border-gray-100 last:border-0">
-                  <p className="text-sm font-medium text-red-500">{log.userName} {log.action} a {log.entityType}</p>
-                  <p className="text-xs text-gray-500">{new Date(log.createdAt).toLocaleString()}</p>
-                </div>
-              ))}
+              {activityLogs
+                .slice() // Clone the array to avoid modifying state
+                .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()) // Convert strings to Date and sort
+                .slice(0, 3) // Take the top 3 most recent activities
+                .map(log => (
+                  <div key={log.id} className="mb-2 pb-2 border-b border-gray-100 last:border-0">
+                    <p className="text-sm font-medium text-red-500">
+                      {log.userName} {log.action} a {log.entityType}
+                    </p>
+                    <p className="text-xs text-gray-500">{new Date(log.createdAt).toLocaleString()}</p>
+                  </div>
+                ))
+              }
               {activityLogs.length === 0 && (
                 <p className="text-sm text-gray-500">No recent activity</p>
               )}
