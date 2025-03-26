@@ -372,7 +372,7 @@ export default function OwnerDashboard() {
 
       {/* Delete User Confirmation Modal */}
       {deleteUserCandidate && (
-        <div className="fixed inset-0 bg-black/30 backdrop-blur-sm z-50 flex items-center justify-center">
+        <div className="fixed inset-0 bg-black/30 backdrop-blur-sm z-50 flex items-center justify-center p-4">
           <div className="bg-white p-6 rounded-xl max-w-md w-full mx-4">
             <div className="flex items-center gap-3 mb-4">
               <div className="p-2 bg-red-100 rounded-full">
@@ -383,7 +383,7 @@ export default function OwnerDashboard() {
             <p className="text-gray-600 mb-6">
               Are you sure you want to delete this user? All their transactions will be deleted as well. This action cannot be undone.
             </p>
-            <div className="flex justify-end gap-3">
+            <div className="flex flex-col sm:flex-row justify-end gap-3">
               <button
                 onClick={() => setDeleteUserCandidate(null)}
                 className="px-4 py-2 text-gray-600 hover:bg-gray-100 rounded-lg"
@@ -403,11 +403,11 @@ export default function OwnerDashboard() {
 
       {/* Error Message Toast */}
       {errorMessage && (
-        <div className="fixed bottom-4 right-4 bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded-lg flex items-center gap-2 animate-fade-in-up">
+        <div className="fixed bottom-4 right-4 bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded-lg flex items-center gap-2 animate-fade-in-up max-w-xs w-full">
           <div className="w-5 h-5 bg-red-500 rounded-full flex items-center justify-center">
             <span className="text-white text-sm">!</span>
           </div>
-          <span>{errorMessage}</span>
+          <span className="truncate flex-grow">{errorMessage}</span>
           <button
             onClick={() => setErrorMessage(null)}
             className="ml-4 text-red-700 hover:text-red-900"
@@ -418,14 +418,14 @@ export default function OwnerDashboard() {
       )}
 
       <div className={`max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 ${isLoading ? 'blur-sm' : ''}`}>
-        {/* Header */}
-        <div className="flex items-center justify-between mb-8">
+        {/* Header - Made Responsive */}
+        <div className="flex flex-col sm:flex-row items-center justify-between mb-8 space-y-4 sm:space-y-0">
           <div className="flex items-center space-x-3">
             <PieChart className="w-8 h-8 text-emerald-600" />
-            <h1 className="text-3xl font-bold text-gray-900">Steam Yard Dashboard</h1>
+            <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">Steam Yard Dashboard</h1>
           </div>
           
-          <div className="flex items-center space-x-4">
+          <div className="flex flex-col sm:flex-row items-center space-y-2 sm:space-y-0 sm:space-x-4">
             <div className="bg-white px-4 py-2 rounded-lg shadow-sm">
               <span className="text-sm text-gray-600">Total Balance:</span>
               <span className={`ml-2 text-xl font-semibold ${
@@ -436,7 +436,7 @@ export default function OwnerDashboard() {
             </div>
             
             {currentUser && (
-              <div className="flex items-center">
+              <div className="flex flex-col sm:flex-row items-center space-y-2 sm:space-y-0 sm:space-x-2">
                 <div className="bg-white px-4 py-2 rounded-lg shadow-sm flex items-center">
                   <User className="w-5 h-5 text-gray-600 mr-2" />
                   <div>
@@ -446,7 +446,7 @@ export default function OwnerDashboard() {
                 </div>
                 <button 
                   onClick={handleLogout}
-                  className="ml-2 p-2 bg-white rounded-lg shadow-sm text-gray-600 hover:text-red-600 transition-colors"
+                  className="p-2 bg-white rounded-lg shadow-sm text-gray-600 hover:text-red-600 transition-colors"
                   title="Logout"
                 >
                   <LogOut className="w-5 h-5" />
@@ -456,9 +456,9 @@ export default function OwnerDashboard() {
           </div>
         </div>
 
-        {/* Navigation Tabs */}
-        <div className="bg-white rounded-xl shadow-sm p-2 mb-8">
-          <div className="flex border-b">
+        {/* Navigation Tabs - Made Scrollable */}
+        <div className="bg-white rounded-xl shadow-sm p-2 mb-8 overflow-x-auto">
+          <div className="flex border-b min-w-[800px]">
             <button
               onClick={() => setActiveTab('overview')}
               className={`px-4 py-2 font-medium rounded-t-lg ${activeTab === 'overview' ? 'text-emerald-600 border-b-2 border-emerald-600' : 'text-gray-500 hover:text-gray-700'}`}
@@ -492,9 +492,9 @@ export default function OwnerDashboard() {
           </div>
         </div>
 
-        {/* Tab Content */}
+        {/* Tab Content - Adjusted for Mobile */}
         {activeTab === 'overview' && (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
             {/* Total Users Card */}
             <div className="bg-white rounded-xl shadow-sm p-6">
               <div className="flex items-center justify-between mb-4">
@@ -526,9 +526,9 @@ export default function OwnerDashboard() {
                 <BarChart2 className="w-6 h-6 text-emerald-600" />
               </div>
               {activityLogs
-                .slice() // Clone the array to avoid modifying state
-                .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()) // Convert strings to Date and sort
-                .slice(0, 3) // Take the top 3 most recent activities
+                .slice()
+                .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
+                .slice(0, 3)
                 .map(log => (
                   <div key={log.id} className="mb-2 pb-2 border-b border-gray-100 last:border-0">
                     <p className="text-sm font-medium text-red-500">
@@ -545,16 +545,17 @@ export default function OwnerDashboard() {
           </div>
         )}
 
+        {/* Users Tab - Made Scrollable */}
         {activeTab === 'users' && (
           <div className="bg-white rounded-xl shadow-sm overflow-hidden">
-            <div className="px-6 py-4 border-b border-gray-200 flex justify-between items-center">
+            <div className="px-6 py-4 border-b border-gray-200 flex flex-col sm:flex-row justify-between items-center space-y-4 sm:space-y-0">
               <h2 className="text-lg font-semibold text-gray-900">User Management</h2>
-              <div className="relative">
+              <div className="relative w-full sm:w-auto">
                 <Search className="w-4 h-4 absolute top-3 left-3 text-gray-400" />
                 <input
                   type="text"
                   placeholder="Search users..."
-                  className="pl-10 pr-4 py-2 border border-gray-600 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 text-gray-900"
+                  className="w-full sm:w-64 pl-10 pr-4 py-2 border border-gray-600 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 text-gray-900"
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
                 />
@@ -562,7 +563,7 @@ export default function OwnerDashboard() {
             </div>
             
             <div className="overflow-x-auto">
-              <table className="w-full">
+              <table className="w-full min-w-[1000px]">
                 <thead className="bg-gray-50">
                   <tr>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">ID</th>
@@ -575,6 +576,8 @@ export default function OwnerDashboard() {
                   </tr>
                 </thead>
                 
+                {/* Rest of the users table remains the same */}
+
                 <tbody className="divide-y divide-gray-200">
                   {users
                     .filter(user => 
@@ -622,20 +625,23 @@ export default function OwnerDashboard() {
           </div>
         )}
 
+        {/* Transactions Tab - Improved Responsiveness */}
         {activeTab === 'transactions' && (
           <div className="bg-white rounded-xl shadow-sm overflow-hidden">
             <div className="px-6 py-4 border-b border-gray-200">
-              <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-                <h2 className="text-lg font-semibold text-gray-900">All Transactions</h2>
+              <div className="flex flex-col gap-4">
+                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between">
+                  <h2 className="text-lg font-semibold text-gray-900 mb-4 sm:mb-0">All Transactions</h2>
+                </div>
                 
-                <div className="flex flex-wrap gap-2">
+                <div className="flex flex-wrap gap-2 justify-center sm:justify-start">
                   {/* Search */}
-                  <div className="relative">
+                  <div className="relative w-full sm:w-auto">
                     <Search className="w-4 h-4 absolute top-3 left-3 text-gray-400" />
                     <input
                       type="text"
                       placeholder="Search..."
-                      className="pl-10 pr-4 py-2 border border-gray-600 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 text-gray-900"
+                      className="w-full sm:w-64 pl-10 pr-4 py-2 border border-gray-600 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 text-gray-900"
                       value={searchTerm}
                       onChange={(e) => setSearchTerm(e.target.value)}
                     />
@@ -643,7 +649,7 @@ export default function OwnerDashboard() {
                   
                   {/* User Filter */}
                   <select
-                    className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 text-gray-900"
+                    className="w-full sm:w-auto px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 text-gray-900"
                     value={selectedUser || ''}
                     onChange={(e) => setSelectedUser(e.target.value ? parseInt(e.target.value) : null)}
                   >
@@ -658,7 +664,7 @@ export default function OwnerDashboard() {
                   
                   {/* Category Filter */}
                   <select
-                    className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 text-gray-900"
+                    className="w-full sm:w-auto px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 text-gray-900"
                     value={categoryFilter}
                     onChange={(e) => setCategoryFilter(e.target.value)}
                   >
@@ -670,7 +676,7 @@ export default function OwnerDashboard() {
                   
                   {/* Date Filter */}
                   <select
-                    className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 text-gray-900"
+                    className="w-full sm:w-auto px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 text-gray-900"
                     value={dateFilter}
                     onChange={(e) => setDateFilter(e.target.value)}
                   >
@@ -683,7 +689,7 @@ export default function OwnerDashboard() {
                   {/* Export Button */}
                   <button
                     onClick={downloadReport}
-                    className="flex items-center px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg transition-colors"
+                    className="w-full sm:w-auto flex items-center justify-center px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg transition-colors"
                   >
                     <Download className="w-4 h-4 mr-2" />
                     Export
@@ -693,7 +699,7 @@ export default function OwnerDashboard() {
             </div>
             
             <div className="overflow-x-auto">
-              <table className="w-full">
+              <table className="w-full min-w-[1000px]">
                 <thead className="bg-gray-50">
                   <tr>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date</th>
