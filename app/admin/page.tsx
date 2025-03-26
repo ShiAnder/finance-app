@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { Transaction } from '@prisma/client';
-import { PlusCircle, Edit, Trash2, ArrowUp, ArrowDown, PieChart, Loader, LogOut, User } from 'react-feather';
+import { PlusCircle, Edit, Trash2, ArrowUp, ArrowDown, Search, PieChart, Loader, LogOut, User } from 'react-feather';
 
 interface User {
   id: number;
@@ -52,6 +52,7 @@ export default function FinanceDashboard() {
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [currentUser, setCurrentUser] = useState<User | null>(null);
   const [isAdmin, setIsAdmin] = useState(false);
+  const [searchTerm, setSearchTerm] = useState('');
   const router = useRouter();
 
   const getCategories = () => {
@@ -363,19 +364,23 @@ export default function FinanceDashboard() {
                 />
               </div>
               
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Type</label>
-                <select
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 text-gray-900"
-                  value={formData.type}
-                  onChange={(e) => setFormData({ ...formData, type: e.target.value })}
-                >
-                  <option value="EXPENSE">Expense</option>
-                  <option value="INCOME">Income</option>
-                  <option value="OTHER">Other</option>
-                </select>
-                
-                <div className="mt-4">
+              <div className="flex gap-4">
+                {/* Type Dropdown */}
+                <div className="w-2xl">
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Type</label>
+                  <select
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 text-gray-900"
+                    value={formData.type}
+                    onChange={(e) => setFormData({ ...formData, type: e.target.value })}
+                  >
+                    <option value="EXPENSE">Expense</option>
+                    <option value="INCOME">Income</option>
+                    <option value="OTHER">Other</option>
+                  </select>
+                </div>
+
+                {/* Category Dropdown */}
+                <div className="w-2xl">
                   <label className="block text-sm font-medium text-gray-700 mb-1">Category</label>
                   <select
                     className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 text-gray-900"
@@ -394,7 +399,6 @@ export default function FinanceDashboard() {
                   </select>
                 </div>
               </div>
-
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">Description</label>
                 <input
@@ -418,14 +422,31 @@ export default function FinanceDashboard() {
           </form>
         </div>
 
-        {/* Transactions Card */}
+        {/* Transactions Card - Improved Responsiveness with Search */}
         <div className="bg-white rounded-xl shadow-sm overflow-hidden">
           <div className="px-6 py-4 border-b border-gray-200">
             <h2 className="text-lg font-semibold text-gray-900">
               {isAdmin ? 'All Transactions' : 'Your Transactions'}
             </h2>
           </div>
-          
+
+          {/* Filters and Search Section */}
+          <div className="px-6 py-4">
+            <div className="flex flex-wrap gap-2 justify-center sm:justify-start">
+              {/* Search */}
+              <div className="relative w-full sm:w-64">
+                <Search className="w-4 h-4 absolute top-3 left-3 text-gray-400" />
+                <input
+                  type="text"
+                  placeholder="Search..."
+                  className="w-full sm:w-64 pl-10 pr-4 py-2 border border-gray-600 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 text-gray-900"
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                />
+              </div>
+            </div>
+          </div>
+
           <div className="overflow-x-auto">
             <table className="w-full">
               <thead className="bg-gray-50">
@@ -440,10 +461,15 @@ export default function FinanceDashboard() {
               </thead>
               
               <tbody className="divide-y divide-gray-200">
-              {Array.isArray(transactions) && transactions
-                    .filter(transaction => isAdmin || transaction.userId === currentUser?.id)
-                    .map((transaction) => (
-                      <tr key={transaction.id} className="hover:bg-gray-50 transition-colors">
+                {Array.isArray(transactions) && transactions
+                  .filter(transaction => isAdmin || transaction.userId === currentUser?.id)
+                  .filter(transaction => 
+                    transaction.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                    transaction.category.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                    transaction.type.toLowerCase().includes(searchTerm.toLowerCase())
+                  )
+                  .map((transaction) => (
+                    <tr key={transaction.id} className="hover:bg-gray-50 transition-colors">
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                         {new Date(transaction.date).toLocaleDateString('en-US', {
                           year: 'numeric',
@@ -454,7 +480,6 @@ export default function FinanceDashboard() {
                           hour12: true,
                         })}
                       </td>
-                     
                       <td className="px-6 py-4 whitespace-nowrap">
                         <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
                           transaction.type === 'INCOME' 
@@ -501,6 +526,7 @@ export default function FinanceDashboard() {
               </tbody>
             </table>
           </div>
+
         </div>
       </div>
     </div>
