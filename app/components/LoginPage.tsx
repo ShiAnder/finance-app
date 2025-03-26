@@ -38,7 +38,7 @@ export default function LoginPage() {
       if (data.user && data.user.role === 'OWNER') {
         router.push('/owner');
       } else {
-        router.push('/');
+        router.push('/admin');
       }
 
     } catch (error) {
