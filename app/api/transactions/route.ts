@@ -4,6 +4,10 @@ import prisma from '@/lib/prisma'; // Adjust based on your project structure|
 
 export async function GET(request: Request) {
   try {
+    const { searchParams } = new URL(request.url);
+    const page = parseInt(searchParams.get('page') || '1', 10);
+    const pageSize = parseInt(searchParams.get('pageSize') || '10', 10);
+
     const userId = request.headers.get('x-user-id');
     const userRole = request.headers.get('x-user-role');
     
@@ -14,36 +18,69 @@ export async function GET(request: Request) {
       );
     }
     
+    // Calculate pagination parameters
+    const skip = (page - 1) * pageSize;
+
     // If admin, get all transactions with user details
     if (userRole === 'OWNER') {
-      const transactions = await prisma.transaction.findMany({
-        include: {
-          user: {
-            select: {
-              name: true,
-              email: true
+      const [transactions, total] = await Promise.all([
+        prisma.transaction.findMany({
+          include: {
+            user: {
+              select: {
+                name: true,
+                email: true
+              }
             }
-          }
-        },
-        orderBy: {
-          date: 'desc'
+          },
+          orderBy: {
+            date: 'desc'
+          },
+          skip,
+          take: pageSize
+        }),
+        prisma.transaction.count()
+      ]);
+      
+      return NextResponse.json({
+        transactions,
+        pagination: {
+          currentPage: page,
+          pageSize,
+          totalItems: total,
+          totalPages: Math.ceil(total / pageSize)
         }
       });
-      
-      return NextResponse.json(transactions);
     } 
     
     // Regular user - get only their transactions
-    const transactions = await prisma.transaction.findMany({
-      where: {
-        userId: parseInt(userId)
-      },
-      orderBy: {
-        date: 'desc'
+    const [transactions, total] = await Promise.all([
+      prisma.transaction.findMany({
+        where: {
+          userId: parseInt(userId)
+        },
+        orderBy: {
+          date: 'desc'
+        },
+        skip,
+        take: pageSize
+      }),
+      prisma.transaction.count({
+        where: {
+          userId: parseInt(userId)
+        }
+      })
+    ]);
+    
+    return NextResponse.json({
+      transactions,
+      pagination: {
+        currentPage: page,
+        pageSize,
+        totalItems: total,
+        totalPages: Math.ceil(total / pageSize)
       }
     });
-    
-    return NextResponse.json(transactions);
   } catch (error) {
     console.error('Get transactions error:', error);
     return NextResponse.json(

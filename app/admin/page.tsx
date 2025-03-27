@@ -54,6 +54,12 @@ export default function FinanceDashboard() {
   const [isAdmin, setIsAdmin] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const router = useRouter();
+  const [pagination, setPagination] = useState({
+    currentPage: 1,
+    pageSize: 10,
+    totalItems: 0,
+    totalPages: 0
+  });
 
   const getCategories = () => {
     switch (formData.type) {
@@ -121,10 +127,10 @@ export default function FinanceDashboard() {
     }
   };
 
-  const fetchTransactions = async () => {
+  const fetchTransactions = async (page = 1, pageSize = 10) => {
     try {
       setIsLoading(true);
-      const res = await fetch('/api/transactions');
+      const res = await fetch(`/api/transactions?page=${page}&pageSize=${pageSize}`);
       
       if (!res.ok) {
         if (res.status === 401) {
@@ -135,14 +141,28 @@ export default function FinanceDashboard() {
         throw new Error(`HTTP error! Status: ${res.status}`);
       }
       
-      const data = await res.json();
+      const { transactions, pagination } = await res.json();
       
-      // Make sure data is an array before setting state
-      setTransactions(Array.isArray(data) ? data : []);
+      // Make sure transactions is an array before setting state
+      setTransactions(Array.isArray(transactions) ? transactions : []);
+      
+      // Set pagination information
+      setPagination({
+        currentPage: pagination.currentPage,
+        pageSize: pagination.pageSize,
+        totalItems: pagination.totalItems,
+        totalPages: pagination.totalPages
+      });
     } catch (error) {
       console.error('Fetch transactions error:', error);
       setErrorMessage('Failed to fetch transactions');
       setTransactions([]); // Reset to empty array on error
+      setPagination({
+        currentPage: 1,
+        pageSize: 10,
+        totalItems: 0,
+        totalPages: 0
+      });
     } finally {
       setIsLoading(false);
     }
@@ -525,6 +545,29 @@ export default function FinanceDashboard() {
                   ))}
               </tbody>
             </table>
+
+            <div className="px-6 py-4 flex justify-between items-center">
+              <div className="text-sm text-gray-600">
+                Showing {pagination.currentPage} of {pagination.totalPages} pages
+                ({pagination.totalItems} total transactions)
+              </div>
+              <div className="flex space-x-2">
+                <button 
+                  onClick={() => fetchTransactions(pagination.currentPage - 1)}
+                  disabled={pagination.currentPage === 1}
+                  className="px-4 py-2 border rounded-lg disabled:opacity-50 hover:bg-gray-500 text-gray-900"
+                >
+                  Previous
+                </button>
+                <button 
+                  onClick={() => fetchTransactions(pagination.currentPage + 1)}
+                  disabled={pagination.currentPage === pagination.totalPages}
+                  className="px-4 py-2 border rounded-lg disabled:opacity-50 hover:bg-gray-500 text-gray-900"
+                >
+                  Next
+                </button>
+              </div>
+            </div>
           </div>
 
         </div>
