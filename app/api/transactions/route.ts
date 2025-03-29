@@ -1,12 +1,27 @@
 import { NextResponse } from 'next/server';
-import prisma from '@/lib/prisma'; // Adjust based on your project structure|
+import prisma from '@/lib/prisma';
 
+
+type TransactionFilters = {
+  userId?: number;
+  category?: string;
+  type?: string;
+  date?: {
+    gte?: Date;
+    lte?: Date;
+  };
+};
 
 export async function GET(request: Request) {
   try {
     const { searchParams } = new URL(request.url);
     const page = parseInt(searchParams.get('page') || '1', 10);
     const pageSize = parseInt(searchParams.get('pageSize') || '10', 10);
+    const category = searchParams.get('category');
+    const type = searchParams.get('type');
+    const filterUserId = searchParams.get('userId');
+    const startDate = searchParams.get('startDate');
+    const endDate = searchParams.get('endDate');
 
     const userId = request.headers.get('x-user-id');
     const userRole = request.headers.get('x-user-role');
@@ -17,14 +32,42 @@ export async function GET(request: Request) {
         { status: 401 }
       );
     }
-    
-    // Calculate pagination parameters
+
+    const parsedUserId = parseInt(userId, 10);
     const skip = (page - 1) * pageSize;
 
-    // If admin, get all transactions with user details
+    const whereCondition: TransactionFilters = {};
+    
     if (userRole === 'OWNER') {
+      if (filterUserId && filterUserId !== 'all') {
+        whereCondition.userId = parseInt(filterUserId, 10);
+      }
+    } else {
+      whereCondition.userId = parsedUserId;
+    }
+
+    if (category && category !== 'all') {
+      whereCondition.category = category;
+    }
+    
+    if (type && type !== 'all') {
+      whereCondition.type = type;
+    }
+
+    if (startDate || endDate) {
+      whereCondition.date = {};
+      if (startDate) whereCondition.date.gte = new Date(startDate);
+      if (endDate) {
+        const endOfDay = new Date(endDate);
+        endOfDay.setHours(23, 59, 59, 999);
+        whereCondition.date.lte = endOfDay;
+      }
+    }
+
+    try {
       const [transactions, total] = await Promise.all([
         prisma.transaction.findMany({
+          where: whereCondition,
           include: {
             user: {
               select: {
@@ -33,13 +76,11 @@ export async function GET(request: Request) {
               }
             }
           },
-          orderBy: {
-            date: 'desc'
-          },
+          orderBy: { date: 'desc' },
           skip,
           take: pageSize
         }),
-        prisma.transaction.count()
+        prisma.transaction.count({ where: whereCondition })
       ]);
       
       return NextResponse.json({
@@ -51,36 +92,13 @@ export async function GET(request: Request) {
           totalPages: Math.ceil(total / pageSize)
         }
       });
-    } 
-    
-    // Regular user - get only their transactions
-    const [transactions, total] = await Promise.all([
-      prisma.transaction.findMany({
-        where: {
-          userId: parseInt(userId)
-        },
-        orderBy: {
-          date: 'desc'
-        },
-        skip,
-        take: pageSize
-      }),
-      prisma.transaction.count({
-        where: {
-          userId: parseInt(userId)
-        }
-      })
-    ]);
-    
-    return NextResponse.json({
-      transactions,
-      pagination: {
-        currentPage: page,
-        pageSize,
-        totalItems: total,
-        totalPages: Math.ceil(total / pageSize)
-      }
-    });
+    } catch (dbError) {
+      console.error('Database query error:', dbError);
+      return NextResponse.json(
+        { error: 'Database query failed' },
+        { status: 500 }
+      );
+    }
   } catch (error) {
     console.error('Get transactions error:', error);
     return NextResponse.json(
@@ -134,7 +152,6 @@ export async function POST(request: Request) {
       }
     });
 
-    
     return NextResponse.json(transaction, { status: 201 });
   } catch (error) {
     console.error('Create transaction error:', error);

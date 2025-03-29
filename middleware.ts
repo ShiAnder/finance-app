@@ -8,7 +8,8 @@ const JWT_SECRET = new TextEncoder().encode(process.env.JWT_SECRET || 'your-secr
 const routePermissions = {
   '/api/transactions': ['ADMIN', 'OWNER'],
   '/api/users': ['ADMIN', 'OWNER'],
-  '/api/activity-logs': ['ADMIN', 'OWNER']
+  '/api/activity-logs': ['ADMIN', 'OWNER'],
+  '/api/dashboard/summary':['ADMIN', 'OWNER']
   // Add other routes as needed
 };
 
