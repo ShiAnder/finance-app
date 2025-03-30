@@ -115,7 +115,7 @@ export const TransactionTable: React.FC<TransactionTableProps> = ({
                 <td className={`px-6 py-4 whitespace-nowrap text-sm text-right ${
                   transaction.type === 'EXPENSE' ? 'text-red-600' : 'text-emerald-600'
                 }`}>
-                  {transaction.type === 'EXPENSE' ? '-' : '+'} Rs.{transaction.amount.toFixed(2)}
+                  {transaction.type === 'EXPENSE' ? '-' : '+'} LKR {transaction.amount.toFixed(2)}
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                   {(isAdmin || transaction.userId === currentUserId) && (

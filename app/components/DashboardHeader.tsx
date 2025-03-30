@@ -31,7 +31,7 @@ export const DashboardHeader: React.FC<DashboardHeaderProps> = ({
           <span className={`ml-2 text-xl font-semibold ${
             balance >= 0 ? 'text-emerald-600' : 'text-red-600'
           }`}>
-            Rs.{balance.toFixed(2)}
+            LKR {balance.toFixed(2)}
           </span>
         </div>
         
