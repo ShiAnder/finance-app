@@ -337,7 +337,7 @@ export default function TransactionList() {
                         <td className="py-3 px-6 border">{transaction.description}</td>
                         <td className="py-3 px-6 border text-right font-medium">
                           <span className={transaction.type === 'INCOME' ? 'text-green-600' : transaction.type === 'EXPENSE' ? 'text-red-600' : ''}>
-                            ${transaction.amount.toFixed(2)}
+                            Rs.{transaction.amount.toFixed(2)}
                           </span>
                         </td>
                       </tr>

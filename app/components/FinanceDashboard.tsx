@@ -241,7 +241,7 @@ export default function FinanceDashboard() {
       {isLoading && (
         <div className="fixed inset-0 bg-black/30 backdrop-blur-sm z-50 flex items-center justify-center">
           <div className="animate-spin">
-            <Loader className="w-12 h-12 text-emerald-600" />
+            <Loader className="w-10 h-10 md:w-12 md:h-12 text-emerald-600" />
           </div>
         </div>
       )}
@@ -258,15 +258,17 @@ export default function FinanceDashboard() {
         }}
       />
 
-      {/* Error Toast */}
-      {errorMessage && (
-        <ErrorToast 
-          message={errorMessage} 
-          onClose={() => setErrorMessage(null)} 
-        />
-      )}
+      {/* Error Toast - Fixed to remove className prop */}
+      <div className="fixed top-4 left-4 right-4 md:left-auto md:right-4 md:w-96 z-50">
+        {errorMessage && (
+          <ErrorToast 
+            message={errorMessage} 
+            onClose={() => setErrorMessage(null)} 
+          />
+        )}
+      </div>
 
-      <div className={`max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 ${isLoading ? 'blur-sm' : ''}`}>
+      <div className={`w-full max-w-7xl mx-auto px-3 sm:px-4 md:px-6 lg:px-8 py-4 md:py-8 ${isLoading ? 'blur-sm' : ''}`}>
         {/* Dashboard Header */}
         <DashboardHeader
           currentUser={currentUser}
@@ -275,34 +277,53 @@ export default function FinanceDashboard() {
           onLogout={handleLogout}
         />
 
-        {/* Transaction Form */}
-        <TransactionForm
-          initialData={
-            editingTransaction
-              ? { ...editingTransaction, amount: editingTransaction.amount }
-              : undefined
-          }
-          editingId={editingTransaction?.id}
-          onSubmit={handleSubmitTransaction}
-          isLoading={isLoading}
-        />
+        {/* Main content container with improved mobile layout */}
+        <div className="mt-4 md:mt-8 space-y-4 md:space-y-8">
+          {/* Transaction Form */}
+          <div className="bg-white shadow rounded-lg p-4 md:p-6">
+            <h2 className="text-lg md:text-xl font-medium text-gray-800 mb-3 md:mb-4">
+              {editingTransaction ? 'Edit Transaction' : 'Add New Transaction'}
+            </h2>
+            <TransactionForm
+              initialData={
+                editingTransaction
+                  ? { ...editingTransaction, amount: editingTransaction.amount }
+                  : undefined
+              }
+              editingId={editingTransaction?.id}
+              onSubmit={handleSubmitTransaction}
+              isLoading={isLoading}
+            />
+          </div>
 
-        {/* Transaction Table */}
-        <TransactionTable
-          transactions={transactions}
-          isAdmin={isAdmin}
-          currentUserId={currentUser.id}
-          onEdit={(transaction) => {
-            if (!isAdmin && transaction.userId !== currentUser.id) {
-              setErrorMessage("You don't have permission to edit this transaction");
-              return;
-            }
-            setEditingTransaction(transaction);
-          }}
-          onDelete={(id) => setDeleteCandidate(id)}
-          pagination={pagination}
-          onPageChange={fetchTransactions}
-        />
+          {/* Transaction Table */}
+          <div className="bg-white shadow rounded-lg p-3 md:p-6 overflow-hidden">
+            <h2 className="text-lg md:text-xl font-medium text-gray-800 mb-3 md:mb-4">Transactions</h2>
+            <div className="overflow-x-auto -mx-3 md:mx-0">
+              <div className="inline-block min-w-full align-middle">
+                <TransactionTable
+                  transactions={transactions}
+                  isAdmin={isAdmin}
+                  currentUserId={currentUser.id}
+                  onEdit={(transaction) => {
+                    if (!isAdmin && transaction.userId !== currentUser.id) {
+                      setErrorMessage("You don't have permission to edit this transaction");
+                      return;
+                    }
+                    setEditingTransaction(transaction);
+                    // Scroll to the form when editing on mobile
+                    if (window.innerWidth < 768) {
+                      window.scrollTo({ top: 0, behavior: 'smooth' });
+                    }
+                  }}
+                  onDelete={(id) => setDeleteCandidate(id)}
+                  pagination={pagination}
+                  onPageChange={fetchTransactions}
+                />
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   );
