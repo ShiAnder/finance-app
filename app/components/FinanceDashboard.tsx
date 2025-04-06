@@ -1,5 +1,6 @@
 "use client";
 
+import Head from 'next/head';
 import React, { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { Loader } from 'react-feather';
@@ -236,6 +237,17 @@ export default function FinanceDashboard() {
   if (!currentUser) return null;
 
   return (
+
+    <>
+    <Head>
+      <script
+        async
+        src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-6339178599523298"
+        crossOrigin="anonymous"
+      ></script>
+    </Head>
+
+
     <div className="min-h-screen bg-gray-50 relative">
       {/* Loading Overlay */}
       {isLoading && (
@@ -326,5 +338,6 @@ export default function FinanceDashboard() {
         </div>
       </div>
     </div>
+    </>
   );
 }

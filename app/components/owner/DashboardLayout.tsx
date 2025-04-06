@@ -1,5 +1,6 @@
 "use client";
 
+import Head from 'next/head';
 import { useState } from "react";
 import { 
   LayoutGrid, 
@@ -44,6 +45,16 @@ export default function DashboardLayout() {
   ];
 
   return (
+
+    <>
+    <Head>
+      <script
+        async
+        src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-6339178599523298"
+        crossOrigin="anonymous"
+      ></script>
+    </Head>
+      
     <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 p-4 md:p-6">
       <AuthHandler />
       
@@ -126,5 +137,6 @@ export default function DashboardLayout() {
         </div>
       </div>
     </div>
+    </>
   );
 }
