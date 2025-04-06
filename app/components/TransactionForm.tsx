@@ -4,12 +4,12 @@ import React, { useState, useEffect } from 'react';
 import { PlusCircle } from 'react-feather';
 
 const expenseCategories = [
-  "Groceries", "Water Bill", "Electricity", "Building Rental", 
+  "Haven't Paid", "Groceries", "Water Bill", "Electricity", "Building Rental", 
   "Furnitures", "Glass and Crock", "Staff Salary", "Staff Service Charge"
 ];
 
 const incomeCategories = [
-  "Restaurant", "Surf Lessons", "Surf Board Rental"
+  "Restaurant", "Surf Lessons", "Surf Board Rental", "Pending Payments Clear"
 ];
 
 interface TransactionFormProps {
