@@ -7,14 +7,15 @@ import {
   CreditCard, 
   Activity, 
   TrendingDown, 
-  Clock 
+  Clock,
+  User
 } from "lucide-react";
 
 interface Summary {
   totalTransactions: number;
   totalUsers: number;
   totalIncome: number;
-  totalExpense: number; // Note: Changed from totalExpenses to match API response
+  totalExpense: number;
 }
 
 interface RecentActivity {
@@ -24,14 +25,22 @@ interface RecentActivity {
   createdAt: string;
 }
 
+interface UserSummary {
+  userId: number;
+  userName: string;
+  income: number;
+  expense: number;
+}
+
 export default function DashboardOverview() {
   const [summary, setSummary] = useState<Summary>({
     totalTransactions: 0,
     totalUsers: 0,
     totalIncome: 0,
-    totalExpense: 0 // Initialize with 0
+    totalExpense: 0
   });
   const [recentActivities, setRecentActivities] = useState<RecentActivity[]>([]);
+  const [userSummaries, setUserSummaries] = useState<UserSummary[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -55,15 +64,18 @@ export default function DashboardOverview() {
       const summaryData = await summaryRes.json();
       const activitiesData = await activitiesRes.json();
 
-      // Ensure totalExpense is set correctly
       setSummary({
         totalTransactions: summaryData.totalTransactions || 0,
         totalUsers: summaryData.totalUsers || 0,
         totalIncome: summaryData.totalIncome || 0,
-        totalExpense: summaryData.totalExpenses || 0 // Handle different key names
+        totalExpense: summaryData.totalExpenses || 0
       });
       
       setRecentActivities(activitiesData);
+      
+      // Set user summaries from the API response
+      setUserSummaries(summaryData.userSummaries || []);
+      
       setIsLoading(false);
     } catch {
       setError("Unable to load dashboard data");
@@ -122,106 +134,162 @@ export default function DashboardOverview() {
   }
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-      {/* Transactions Overview */}
-      <div className="bg-white rounded-xl shadow-md p-6 space-y-4">
-        <div className="flex justify-between items-center">
-          <h3 className="text-lg font-semibold text-gray-800 flex items-center gap-2">
-            <CreditCard className="w-5 h-5 text-indigo-600" />
-            Transactions
-          </h3>
-          <span className="text-gray-500 text-sm">Total</span>
-        </div>
-        <div className="space-y-2">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <TrendingUp className="w-5 h-5 text-green-600" />
-              <span className="text-gray-700">Income</span>
+    <div className="space-y-6">
+      {/* Main Dashboard Overview */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        {/* Transactions Overview */}
+        <div className="bg-white rounded-xl shadow-md p-6 space-y-4">
+          <div className="flex justify-between items-center">
+            <h3 className="text-lg font-semibold text-gray-800 flex items-center gap-2">
+              <CreditCard className="w-5 h-5 text-indigo-600" />
+              Transactions
+            </h3>
+            <span className="text-gray-500 text-sm">Total</span>
+          </div>
+          <div className="space-y-2">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <TrendingUp className="w-5 h-5 text-green-600" />
+                <span className="text-gray-700">Income</span>
+              </div>
+              <span className="font-bold text-green-700">
+                {formatCurrency(summary.totalIncome)}
+              </span>
             </div>
-            <span className="font-bold text-green-700">
-              {formatCurrency(summary.totalIncome)}
-            </span>
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <TrendingDown className="w-5 h-5 text-red-600" />
+                <span className="text-gray-700">Expense</span>
+              </div>
+              <span className="font-bold text-red-700">
+                {formatCurrency(summary.totalExpense)}
+              </span>
+            </div>
+            <div className="border-t pt-2 text-center">
+              <span className="text-sm text-gray-600">
+                Total Transactions: {summary.totalTransactions}
+              </span>
+            </div>
+          </div>
+        </div>
+
+        {/* Users Overview */}
+        <div className="bg-white rounded-xl shadow-md p-6 space-y-4">
+          <div className="flex justify-between items-center">
+            <h3 className="text-lg font-semibold text-gray-800 flex items-center gap-2">
+              <Users className="w-5 h-5 text-green-600" />
+              Users
+            </h3>
+            <span className="text-gray-500 text-sm">Total</span>
           </div>
           <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <TrendingDown className="w-5 h-5 text-red-600" />
-              <span className="text-gray-700">Expense</span>
-            </div>
-            <span className="font-bold text-red-700">
-              {formatCurrency(summary.totalExpense)}
+            <span className="text-gray-700">Registered Users</span>
+            <span className="text-2xl font-bold text-green-700">
+              {summary.totalUsers}
             </span>
           </div>
           <div className="border-t pt-2 text-center">
             <span className="text-sm text-gray-600">
-              Total Transactions: {summary.totalTransactions}
+              Active community growth
             </span>
           </div>
         </div>
-      </div>
 
-      {/* Users Overview */}
-      <div className="bg-white rounded-xl shadow-md p-6 space-y-4">
-        <div className="flex justify-between items-center">
-          <h3 className="text-lg font-semibold text-gray-800 flex items-center gap-2">
-            <Users className="w-5 h-5 text-green-600" />
-            Users
-          </h3>
-          <span className="text-gray-500 text-sm">Total</span>
-        </div>
-        <div className="flex items-center justify-between">
-          <span className="text-gray-700">Registered Users</span>
-          <span className="text-2xl font-bold text-green-700">
-            {summary.totalUsers}
-          </span>
-        </div>
-        <div className="border-t pt-2 text-center">
-          <span className="text-sm text-gray-600">
-            Active community growth
-          </span>
-        </div>
-      </div>
-
-      {/* Recent Activity */}
-      <div className="bg-white rounded-xl shadow-md p-6 space-y-4">
-        <div className="flex justify-between items-center">
-          <h3 className="text-lg font-semibold text-gray-800 flex items-center gap-2">
-            <Activity className="w-5 h-5 text-blue-600" />
-            Recent Activity
-          </h3>
-          <Clock className="w-4 h-4 text-gray-500" />
-        </div>
-        <ul className="space-y-3">
-          {recentActivities.length === 0 ? (
-            <p className="text-center text-gray-500">No recent activities</p>
-          ) : (
-            recentActivities.map((activity) => (
-              <li 
-                key={activity.id} 
-                className="flex justify-between items-center"
-              >
-                <div>
-                  <span className="font-medium text-gray-800">
-                    {activity.userName}
+        {/* Recent Activity */}
+        <div className="bg-white rounded-xl shadow-md p-6 space-y-4">
+          <div className="flex justify-between items-center">
+            <h3 className="text-lg font-semibold text-gray-800 flex items-center gap-2">
+              <Activity className="w-5 h-5 text-blue-600" />
+              Recent Activity
+            </h3>
+            <Clock className="w-4 h-4 text-gray-500" />
+          </div>
+          <ul className="space-y-3">
+            {recentActivities.length === 0 ? (
+              <p className="text-center text-gray-500">No recent activities</p>
+            ) : (
+              recentActivities.map((activity) => (
+                <li 
+                  key={activity.id} 
+                  className="flex justify-between items-center"
+                >
+                  <div>
+                    <span className="font-medium text-gray-800">
+                      {activity.userName}
+                    </span>
+                    <span 
+                      className={`
+                        ml-2 text-xs px-2 py-1 rounded-full
+                        ${getActionColor(activity.action)} 
+                        bg-opacity-10 
+                        font-semibold
+                      `}
+                    >
+                      {activity.action}
+                    </span>
+                  </div>
+                  <span className="text-xs text-gray-500">
+                    {formatDate(activity.createdAt)}
                   </span>
-                  <span 
-                    className={`
-                      ml-2 text-xs px-2 py-1 rounded-full
-                      ${getActionColor(activity.action)} 
-                      bg-opacity-10 
-                      font-semibold
-                    `}
-                  >
-                    {activity.action}
+                </li>
+              ))
+            )}
+          </ul>
+        </div>
+      </div>
+
+      {/* Admin Users Transaction Sections */}
+      {userSummaries.length > 0 && (
+        <div className="mt-8">
+          <h2 className="text-xl font-bold text-gray-800 mb-4">Admin Users Transactions</h2>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {userSummaries.map((user) => (
+              <div 
+                key={user.userId}
+                className="bg-white rounded-xl shadow-md p-6 space-y-4"
+              >
+                <div className="flex justify-between items-center">
+                  <h3 className="text-lg font-semibold text-gray-800 flex items-center gap-2">
+                    <User className="w-5 h-5 text-purple-600" />
+                    {user.userName}
+                  </h3>
+                  <span className="text-xs text-gray-500 px-2 py-1 bg-gray-100 rounded-full">
+                    ID: {user.userId}
                   </span>
                 </div>
-                <span className="text-xs text-gray-500">
-                  {formatDate(activity.createdAt)}
-                </span>
-              </li>
-            ))
-          )}
-        </ul>
-      </div>
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <TrendingUp className="w-4 h-4 text-green-600" />
+                      <span className="text-gray-700">Income</span>
+                    </div>
+                    <span className="font-medium text-green-700">
+                      {formatCurrency(user.income)}
+                    </span>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <TrendingDown className="w-4 h-4 text-red-600" />
+                      <span className="text-gray-700">Expense</span>
+                    </div>
+                    <span className="font-medium text-red-700">
+                      {formatCurrency(user.expense)}
+                    </span>
+                  </div>
+                  <div className="border-t pt-2">
+                    <div className="flex justify-between items-center">
+                      <span className="text-sm text-gray-600">Balance</span>
+                      <span className={`font-bold ${user.income - user.expense >= 0 ? 'text-green-700' : 'text-red-700'}`}>
+                        {formatCurrency(user.income - user.expense)}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
     </div>
   );
 }
